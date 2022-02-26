@@ -32,9 +32,12 @@ You can now play with our [Colab](https://colab.research.google.com/drive/1NEm6A
 ## Requirement
 The code is tested on Ubuntu with Nvidia GPUs and CUDA installed. Python>=3.6 is required to run the code.
 
+因为后面环境安装的问题，python选择7、8、9比较好，这次用的是3.8
+
 ## Installation
 
 Clone the Synchronized-BatchNorm-PyTorch repository for
+项目中两处地方用到了 sync_batchnorm 文件夹，这里需要注意下：  
 
 ```
 cd Face_Enhancement/models/networks/
@@ -42,6 +45,16 @@ git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
 cp -rf Synchronized-BatchNorm-PyTorch/sync_batchnorm .
 cd ../../../
 ```
+将 sync_batchnorm 复制到 Face_Enhancement/models/network 文件夹下，还需要改动一点项目中的代码部分，找到 Face_Enhancement/models/networks/normalization.py 脚本，更改第 8 行代码，将
+
+```
+from models.networks.sync_batchnorm import SynchronizedBatchNorm2d
+```
+改为：
+```
+from models.networks.sync_batchnorm.batchnorm import SynchronizedBatchNorm2d
+```
+![Face_Enhancement/models/networks/normalization.py](imgs\10d161f078f5e6e648601ec3e93e52ed.png)
 
 ```
 cd Global/detection_models
@@ -49,8 +62,25 @@ git clone https://github.com/vacancy/Synchronized-BatchNorm-PyTorch
 cp -rf Synchronized-BatchNorm-PyTorch/sync_batchnorm .
 cd ../../
 ```
+将 sync_batchnorm 复制到 Global/detection_models ，找到 Global/detection_models/network.py 脚本，更改第 7 行代码，将
+```
+from detection_models.sync_batchnorm import DataParallelWithCallback
+```
+改为：
+```
+from detection_models.sync_batchnorm.replicate import DataParallelWithCallback
+```
+![Global/detection_models/network.py](imgs\2636b93c6e88542f3fc701de4064d132.png)
 
 Download the landmark detection pretrained model
+
+Face_Detection 权重:该项目除了可以照片修复之外，还可以进行人脸增强，简单理解就是把模糊的人脸图像清晰化人脸增强 首先需要解决的是人脸识别问题，项目中借助的是一个Python库 dlib。
+
+dlib 库安装也可以通过 pip 工具，但需要注意两个点 ：
+
+1. pip 安装 dlib 之前，需提前安装好 Cmake ，pip install Cmake，否则会安装失败;
+2. 用 dlib 进行人脸识别需要一个权重文件 **
+
 
 ```
 cd Face_Detection/
@@ -61,10 +91,14 @@ cd ../
 
 Download the pretrained model from Azure Blob Storage, put the file `Face_Enhancement/checkpoints.zip` under `./Face_Enhancement`, and put the file `Global/checkpoints.zip` under `./Global`. Then unzip them respectively.
 
+Face_Enhancement 权重:Face_Enhancement 权重用于人脸部位增强，下载后权重文件解压至 ./Face_Enhancement
 ```
 cd Face_Enhancement/
 wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/face_checkpoints.zip
 unzip face_checkpoints.zip
+```
+Global 权重配置,权重是用于图片全局修复:
+```
 cd ../
 cd Global/
 wget https://github.com/microsoft/Bringing-Old-Photos-Back-to-Life/releases/download/v1.0/global_checkpoints.zip
@@ -76,6 +110,11 @@ Install dependencies:
 
 ```bash
 pip install -r requirements.txt
+```
+这里遇到问题，requirements列表不能完全安装成功，主要是 dlib装不上  直接使用 pip install dib，安装并不成功，建议先下载 .whl 文件，再通过 pip 来安装，下载链接：[https://github.com/sachadee/Dlib](https://github.com/sachadee/Dlib)  ，下载之后安装对应版本
+
+```
+python -m pip install dlib-19.22.99-cp38-cp38m-win_amd64.whl
 ```
 
 ## :rocket: How to use?
